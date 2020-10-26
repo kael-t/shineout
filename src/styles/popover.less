@@ -4,15 +4,30 @@
 @popover-prefix: ~'@{so-prefix}-popover';
 
 .@{popover-prefix} {
-  @keyframe-opacity: ~'@{popover-prefix}-kf-opacity';
+  @keyframe-in: ~'@{popover-prefix}-in';
+  @keyframe-out: ~'@{popover-prefix}-out';
 
-  @keyframes @keyframe-opacity {
+  @keyframes @keyframe-in {
     0% {
       opacity: 0;
+      transform: scale(0.8);
     }
 
     100% {
       opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes @keyframe-out {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(0.8);
     }
   }
 
@@ -33,7 +48,6 @@
   z-index: @zindex-popover;
   display: block;
   border: @popover-border-width solid @popover-arrow-outer-color;
-  // animation: @keyframe-opacity 0.5s ease;
   background-clip: padding-box;
   background-color: @popover-bg;
   border-radius: @popover-border-radius;
@@ -304,5 +318,12 @@
     .@{popover-prefix}-arrow {
       border-color: @state-danger-border;
     }
+  }
+
+  &-animation {
+    opacity: 0;
+  }
+  &-show {
+    opacity: 1;
   }
 }

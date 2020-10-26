@@ -74,3 +74,28 @@ export const getPosition = (position, el, container = document.body) => {
     {}
   )
 }
+
+export function getTranslate(position) {
+  const [first, sec] = position.split('-')
+  const translate = {
+    x: 0,
+    y: 0,
+  }
+  if (((first === 'top' || first === 'bottom') && sec) || first === 'right') {
+    translate.x = 0
+  } else if ((first === 'top' || first === 'bottom') && !sec) {
+    translate.x = -50
+  } else if (first === 'left') {
+    translate.x = -100
+  }
+
+  if (((first === 'right' || first === 'left') && sec === 'top') || first === 'bottom') {
+    translate.y = 0
+  } else if ((first === 'right' || first === 'left') && !sec) {
+    translate.y = -50
+  } else if (((first === 'right' || first === 'left') && sec === 'bottom') || first === 'top') {
+    translate.y = -100
+  }
+
+  return `translate(${translate.x}%, ${translate.y}%)`
+}
