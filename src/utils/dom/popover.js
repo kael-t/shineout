@@ -75,27 +75,49 @@ export const getPosition = (position, el, container = document.body) => {
   )
 }
 
-export function getTranslate(position) {
-  const [first, sec] = position.split('-')
-  const translate = {
+export function getOriginPosition(el, container = document.body) {
+  const rect = el.getBoundingClientRect()
+  let containerRect = { top: 0, left: 0, bottom: 0, right: 0 }
+  if (container.tagName === 'BODY') container = undefined
+  const scroll = {
+    top: docScroll.top,
+    left: docScroll.left,
+  }
+  if (container) {
+    containerRect = container.getBoundingClientRect()
+    scroll.top = 0
+    scroll.left = 0
+  }
+
+  // base point = bottom-left
+  return {
+    top: rect.top - containerRect.top + rect.height + scroll.top,
+    left: rect.left - containerRect.left + scroll.left,
+    parentRect: {
+      width: rect.width,
+      height: rect.height,
+    },
+  }
+}
+
+export function getTransformOrigin(...args) {
+  const [first, sec] = args
+  const transformOrigin = {
     x: 0,
     y: 0,
   }
-  if (((first === 'top' || first === 'bottom') && sec) || first === 'right') {
-    translate.x = 0
-  } else if ((first === 'top' || first === 'bottom') && !sec) {
-    translate.x = -50
-  } else if (first === 'left') {
-    translate.x = -100
-  }
 
-  if (((first === 'right' || first === 'left') && sec === 'top') || first === 'bottom') {
-    translate.y = 0
+  if (first === 'top' || sec === 'bottom') {
+    transformOrigin.y = '100%'
   } else if ((first === 'right' || first === 'left') && !sec) {
-    translate.y = -50
-  } else if (((first === 'right' || first === 'left') && sec === 'bottom') || first === 'top') {
-    translate.y = -100
+    transformOrigin.y = '50%'
   }
 
-  return `translate(${translate.x}%, ${translate.y}%)`
+  if (first === 'left' || sec === 'right') {
+    transformOrigin.x = '100%'
+  } else if ((first === 'top' || first === 'bottom') && !sec) {
+    transformOrigin.x = '50%'
+  }
+
+  return `${transformOrigin.x} ${transformOrigin.y}`
 }

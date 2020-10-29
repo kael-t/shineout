@@ -76,7 +76,7 @@
   &-top-left,
   &-top-right {
     margin-top: -@popover-arrow-margin;
-    transform: translate(-50%, -100%);
+    // transform: translate(-50%, -100%);
     &:after {
       left: 0;
       right: 0;
@@ -92,7 +92,7 @@
   }
 
   &-top-left {
-    transform: translate(0, -100%);
+    // transform: translate(0, -100%);
 
     .@{popover-prefix}-arrow {
       left: @popover-arrow-width * 2;
@@ -100,7 +100,7 @@
   }
 
   &-top-right {
-    transform: translate(-100%, -100%);
+    // transform: translate(-100%, -100%);
 
     .@{popover-prefix}-arrow {
       right: @popover-arrow-width;
@@ -112,7 +112,7 @@
   &-left-bottom,
   &-left {
     margin-left: -@popover-arrow-margin;
-    transform: translate(-100%, -50%);
+    // transform: translate(-100%, -50%);
 
     &:after {
       top: 0;
@@ -129,7 +129,7 @@
   }
 
   &-left-top {
-    transform: translateX(-100%);
+    // transform: translateX(-100%);
 
     .@{popover-prefix}-arrow {
       top: @popover-arrow-width * 2;
@@ -137,7 +137,7 @@
   }
 
   &-left-bottom {
-    transform: translate(-100%, -100%);
+    // transform: translate(-100%, -100%);
 
     .@{popover-prefix}-arrow {
       top: auto;
@@ -149,7 +149,7 @@
   &-right-bottom,
   &-right {
     margin-left: @popover-arrow-margin;
-    transform: translateY(-50%);
+    // transform: translateY(-50%);
 
     &:after {
       top: 0;
@@ -166,7 +166,7 @@
   }
 
   &-right-top {
-    transform: translateY(0);
+    // transform: translateY(0);
 
     .@{popover-prefix}-arrow {
       top: @popover-arrow-width * 2;
@@ -174,7 +174,7 @@
   }
 
   &-right-bottom {
-    transform: translateY(-100%);
+    // transform: translateY(-100%);
 
     .@{popover-prefix}-arrow {
       top: auto;
@@ -187,7 +187,7 @@
   &-bottom-right,
   &-cover {
     margin-top: @popover-arrow-margin;
-    transform: translateX(-50%);
+    // transform: translateX(-50%);
 
     &:after {
       left: 0;
@@ -204,7 +204,7 @@
   }
 
   &-bottom-left, &-cover {
-    transform: translateX(0);
+    // transform: translateX(0);
 
     .@{popover-prefix}-arrow {
       left: @popover-arrow-width * 2;
@@ -215,7 +215,7 @@
   }
 
   &-bottom-right {
-    transform: translateX(-100%);
+    // transform: translateX(-100%);
 
     .@{popover-prefix}-arrow {
       right: @popover-arrow-width;
@@ -224,11 +224,11 @@
   }
 
   &-bottom-right {
-    transform: none;
+    // transform: none;
   }
 
   &-top-right {
-    transform: translateY(-100%);
+    // transform: translateY(-100%);
   }
 
   &-content {
@@ -320,10 +320,27 @@
     }
   }
 
-  &-animation {
-    opacity: 0;
+  &-hide {
+    display: none;
   }
-  &-show {
-    opacity: 1;
+  &-animation-enter {
+    opacity: 0;
+    transform: scale(0);
+    animation-duration: .2s;
+    animation-timing-function: @zoom-in;
+    animation-fill-mode: both;
+  }
+  &-animation-active {
+    animation-name: @keyframe-in;
+    animation-play-state: running;
+  }
+  &-animation-leave{
+    animation-duration: .2s;
+    animation-timing-function: @zoom-out;
+    animation-fill-mode: both;
+  }
+  &-leave-active {
+    animation-name: @keyframe-out;
+    animation-play-state: running;
   }
 }

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import { Component } from '../component'
-import { getPosition, getTranslate } from '../utils/dom/popover'
+import { getOriginPosition, getTransformOrigin } from '../utils/dom/popover'
 import { isFunc } from '../utils/is'
 import { getParent } from '../utils/dom/element'
 import { popoverClass } from '../styles'
@@ -15,6 +15,10 @@ import { Provider as AbsoluteProvider } from '../Table/context'
 const emptyEvent = e => e.stopPropagation()
 
 const duration = 200 // animation duration
+const enterAnimationClass = popoverClass('animation-enter')
+const enterAnimationActiveClass = popoverClass('animation-active')
+const leaveAnimationClass = popoverClass('animation-leave')
+const leaveAnimationActiveClass = popoverClass('leave-active')
 
 class Panel extends Component {
   constructor(props) {
@@ -31,10 +35,9 @@ class Panel extends Component {
     this.childStateChange = this.childStateChange.bind(this)
 
     this.element = document.createElement('div')
-    // init element display
-    this.element.style.display = 'none'
 
     this.animation = null
+    this.setShowTime = null
   }
 
   componentDidMount() {
@@ -68,6 +71,10 @@ class Panel extends Component {
     this.parentElement.removeEventListener('click', this.handleShow)
 
     document.removeEventListener('click', this.clickAway)
+
+    // clear timer
+    this.clearTimer()
+
     if (this.container === document.body) {
       this.container.removeChild(this.element)
     } else {
@@ -76,9 +83,9 @@ class Panel extends Component {
   }
 
   setShow(show) {
-    const { onChildStateChange } = this.props
-    if (onChildStateChange) onChildStateChange(show)
-    this.setState({ show }, () => this.animationRequest(show))
+    this.setShowTime = setTimeout(() => {
+      this.setState({ show })
+    })
   }
 
   getPositionStr() {
@@ -141,65 +148,67 @@ class Panel extends Component {
     return typeof visible === 'boolean' ? visible : this.state.show
   }
 
-  updateAnimationStyle(show = null) {
-    if (show === null) {
-      this.element.style.display = 'none'
-      this.element.style.transition = null
-      return
-    }
-    if (show) {
-      this.element.style.display = 'block'
-      this.element.style.transition = 'all .2s cubic-bezier(0.08, 0.82, 0.17, 1)'
-      this.element.style.transform = `${getTranslate(this.position || this.getPositionStr())} scale(1)`
-      return
-    }
-    this.element.style.transition = 'all .2s cubic-bezier(0.78, 0.14, 0.15, 0.86)'
-    this.element.style.transform = `${getTranslate(this.position || this.getPositionStr())} scale(0.8)`
+  clearTimer() {
+    clearTimeout(this.setShowTime)
+    clearTimeout(this.delayTimeout)
+    clearTimeout(this.animation)
   }
 
-  changeVisible(show) {
-    if (show && this.props.onOpen) this.props.onOpen()
-    if (!show && this.props.onClose) this.props.onClose()
+  updateAnimationRequestElementStyle(show, position) {
+    const originPos = getOriginPosition(this.parentElement, this.container)
 
     if (this.props.onVisibleChange && typeof this.props.onVisibleChange === 'function') this.props.onVisibleChange(show)
+    if (this.props.onChildStateChange && typeof this.props.onChildStateChange === 'function')
+      this.props.onChildStateChange(show)
 
-    // if show = true
+    const outView = this.calcPosition(false, position, originPos)
+    const pos = this.calcPosition(true, position, originPos)
+
+    this.element.style.transformOrigin = this.calcPosition('transformOrigin', position, originPos)
+
+    // show = true
     if (show) {
-      // It is not put in SetTimeout to solve the problem of animation loss when the first mounted
-      this.updateAnimationStyle(true)
+      if (this.props.onOpen && typeof this.props.onOpen === 'function') this.props.onOpen()
+
+      this.element.style.opacity = 0
+
+      // set animation enter
+      this.element.classList.add(enterAnimationClass)
+      // set top/left in view
+      this.element.style.left = `${pos.left}px`
+      this.element.style.top = `${pos.top}px`
+      // set animation active
+      this.element.classList.add(enterAnimationActiveClass)
       this.animation = setTimeout(() => {
-        this.element.classList.add(popoverClass('show'))
-      })
+        this.element.classList.remove(enterAnimationClass, enterAnimationActiveClass)
+        this.element.style.opacity = null
+      }, duration)
       return
     }
 
-    this.updateAnimationStyle(false)
-    this.element.classList.remove(popoverClass('show'))
-    // wait animation done
+    if (this.props.onClose && typeof this.props.onClose === 'function') this.props.onClose()
+    // set animation leave and active
+    this.element.classList.add(leaveAnimationClass, leaveAnimationActiveClass)
     this.animation = setTimeout(() => {
-      this.updateAnimationStyle()
+      // set hide class
+      this.element.classList.add(popoverClass('hide'))
+      this.element.classList.remove(leaveAnimationClass, leaveAnimationActiveClass)
+      // set top/left out view
+      this.element.style.left = `${outView.left}px`
+      this.element.style.top = `${outView.top}px`
     }, duration)
   }
 
-  animationRequest(show) {
+  animationRequest(show, position) {
     const { trigger, mouseEnterDelay, mouseLeaveDelay } = this.props
     const delay = show ? mouseEnterDelay : mouseLeaveDelay
     if (trigger === 'hover' && delay > 0) {
       // delay
-      this.delayTimeout = setTimeout(() => this.changeVisible(show), delay)
+      this.delayTimeout = setTimeout(() => this.updateAnimationRequestElementStyle(show, position), delay)
       return
     }
 
-    this.changeVisible(show)
-  }
-
-  updatePosition(position) {
-    const pos = getPosition(position, this.parentElement, this.container)
-    // eslint-disable-next-line
-    Object.keys(pos).forEach(attr => {
-      this.element.style[attr] = pos[attr]
-    })
-    return pos
+    this.updateAnimationRequestElementStyle(show, position)
   }
 
   bindEvents() {
@@ -244,8 +253,7 @@ class Panel extends Component {
   }
 
   handleShow() {
-    if (this.delayTimeout) clearTimeout(this.delayTimeout)
-    if (this.animation) clearTimeout(this.animation)
+    this.clearTimer()
     if (this.state.show) return
     this.bindScrollDismiss(true)
     document.addEventListener('mousedown', this.clickAway)
@@ -256,12 +264,51 @@ class Panel extends Component {
     const { parentClose } = this.props
     if (this.childStatus) return
     if (e && getParent(e.relatedTarget, `.${popoverClass('inner')}`)) return
-    if (this.delayTimeout) clearTimeout(this.delayTimeout)
-    if (this.animation) clearTimeout(this.animation)
+    this.clearTimer()
     document.removeEventListener('mousedown', this.clickAway)
     this.bindScrollDismiss(false)
     this.setShow(false)
     if (parentClose) parentClose()
+  }
+
+  calcPosition(mode, position, originPos) {
+    if (!mode) {
+      const containerRect = this.container.getBoundingClientRect()
+      return {
+        top: originPos.top - containerRect.height,
+        left: originPos.left - containerRect.width,
+      }
+    }
+    const [first, sec] = position.split('-')
+    if (mode === 'transformOrigin') {
+      return getTransformOrigin(first, sec)
+    }
+    const pos = {
+      top: originPos.top - 1,
+      left: originPos.left,
+    }
+    const { height, width } = this.element.getBoundingClientRect()
+
+    if (first === 'top') {
+      pos.top = originPos.top - (originPos.parentRect.height + height) + 1
+    } else if (sec === 'top') {
+      pos.top = originPos.top - originPos.parentRect.height
+    } else if (sec === 'bottom') {
+      pos.top = originPos.top - height
+    } else if ((first === 'left' || first === 'right') && !sec) {
+      pos.top = originPos.top - (originPos.parentRect.height + height) / 2
+    }
+
+    if (first === 'left') {
+      pos.left = originPos.left - width + 1
+    } else if (first === 'right') {
+      pos.left = originPos.left + originPos.parentRect.width - 1
+    } else if (sec === 'right') {
+      pos.left = originPos.left - (width - originPos.parentRect.width) - 1
+    } else if ((first === 'top' || first === 'bottom') && !sec) {
+      pos.left = originPos.left - (width - originPos.parentRect.width) / 2
+    }
+    return pos
   }
 
   updateElement(show) {
@@ -270,18 +317,26 @@ class Panel extends Component {
     // get position
     const position = this.getPositionStr()
 
-    // update postion
-    if (show) this.updatePosition(position)
+    if (show) {
+      const outView = this.calcPosition(false, position, getOriginPosition(this.parentElement, this.container))
+      // set top/left out view
+      this.element.style.left = `${outView.left}px`
+      this.element.style.top = `${outView.top}px`
 
-    const { style } = this.element
+      // remove hide class
+      this.element.classList.remove(popoverClass('hide'))
+    }
 
-    if (background) style.background = background
-    if (border) style.borderColor = border
+    // public style
+    if (background) this.element.style.background = background
+    if (border) this.element.style.borderColor = border
+    this.element.className = classnames(popoverClass('_', position, type, parentClose && 'inner'), this.props.className)
 
-    this.element.className = classnames(
-      popoverClass('_', position, type, parentClose && 'inner', 'animation'),
-      this.props.className
-    )
+    // next ticket
+    Promise.resolve().then(() => {
+      // start animation
+      this.animationRequest(show, position)
+    })
   }
 
   render() {
