@@ -178,6 +178,12 @@ const pages = [
     component: lazy(() => import(/* webpackChunkName: "Alert" */ './Alert')),
   },
   {
+    name: 'Anchor',
+    cn: '锚点',
+    level: 2,
+    component: lazy(() => import(/* webpackChunkName: "Anchor" */ './Anchor')),
+  },
+  {
     name: 'Message',
     cn: '消息提示',
     level: 2,

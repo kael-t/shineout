@@ -10,6 +10,7 @@ export { default as config, setConfig } from './config'
 
 export { default as LazyList } from './List/LazyList'
 export { default as Alert } from './Alert'
+export { default as Anchor } from './Anchor'
 export { default as Breadcrumb } from './Breadcrumb'
 export { default as Button } from './Button'
 export { default as Card } from './Card'
