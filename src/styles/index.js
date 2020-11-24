@@ -2,6 +2,7 @@
 import genaration from '../utils/classname'
 
 import alertLess from './alert.less'
+import anchorLess from './anchor.less'
 import buttonLess from './button.less'
 import dropdownLess from './dropdown.less'
 import hidableLess from './hidable.less'
@@ -42,6 +43,7 @@ import resizableLess from './resizable.less'
 import lazyloadLess from './lazyload.less'
 
 export const alertClass = genaration(alertLess, 'alert')
+export const anchorClass = genaration(anchorLess, 'anchor')
 export const buttonClass = genaration(buttonLess, 'button')
 export const dropdownClass = genaration(dropdownLess, 'dropdown')
 export const hidableClass = genaration(hidableLess, 'hidable')
