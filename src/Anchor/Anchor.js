@@ -5,6 +5,7 @@ import { anchorClass } from '../styles'
 import AnchorContext from './context'
 import { addEventListener } from '../utils/dom/document'
 import { getParent } from '../utils/dom/element'
+import Sticky from '../Sticky'
 
 class Anchor extends Component {
   static propTypes = {}
@@ -61,17 +62,17 @@ class Anchor extends Component {
   }
 
   getCurrentAnchor() {
-    let containerOffsetTop = 0
-    if (this.targetDom === window) {
-      containerOffsetTop = this.element.ownerDocument.documentElement.clientTop
-    } else {
-      containerOffsetTop = this.targetDom.getBoundingClientRect().top
-    }
-    console.log('containerOffsetTop: ', containerOffsetTop)
     const result = []
     this.links.forEach(value => {
-      if (value.top <= containerOffsetTop) {
-        result.push(value)
+      const dom = document.querySelector(value)
+      if (dom) {
+        const { top } = dom.getBoundingClientRect()
+        if (top <= 0) {
+          result.push({
+            link: value,
+            top,
+          })
+        }
       }
     })
     if (result.length <= 0) return ''
@@ -79,14 +80,14 @@ class Anchor extends Component {
     return target.link
   }
 
-  registerLink(link, top) {
-    if (this.links.findIndex(v => v.link === link) === -1) {
-      this.links.push({ link, top })
+  registerLink(link) {
+    if (this.links.indexOf(link) === -1) {
+      this.links.push(link)
     }
   }
 
   unregisterLink(link) {
-    const index = this.links.findIndex(v => v.link === link)
+    const index = this.links.indexOf(link)
     if (index !== -1) {
       this.links.splice(index, 1)
     }
@@ -94,8 +95,12 @@ class Anchor extends Component {
 
   handleScroll() {
     if (this.scrollTo) return
+    const { activeLink } = this.state
     const currentAnchor = this.getCurrentAnchor()
-    console.log('currentAnchor: ', currentAnchor)
+    if (activeLink === currentAnchor) return
+    this.setState({
+      activeLink: currentAnchor,
+    })
   }
 
   cacheDom(node) {
@@ -103,7 +108,7 @@ class Anchor extends Component {
   }
 
   render() {
-    const { className, style, children } = this.props
+    const { className, style, children, affix } = this.props
     return (
       <AnchorContext.Provider
         value={{
@@ -112,12 +117,28 @@ class Anchor extends Component {
           activeLink: this.state.activeLink,
         }}
       >
-        <div style={style} className={classnames(anchorClass('_'), className)} ref={this.cacheDom}>
-          <div className={anchorClass('container')}>{children}</div>
-        </div>
+        {affix ? (
+          <Sticky top={0}>
+            <div style={style} className={classnames(anchorClass('_'), className)} ref={this.cacheDom}>
+              <div className={anchorClass('container')}>{children}</div>
+            </div>
+          </Sticky>
+        ) : (
+          <div style={style} className={classnames(anchorClass('_'), className)} ref={this.cacheDom}>
+            <div className={anchorClass('container')}>{children}</div>
+          </div>
+        )}
       </AnchorContext.Provider>
     )
   }
+}
+
+Anchor.propTypes = {
+  className: PropTypes.string,
+  style: PropTypes.object,
+  children: PropTypes.node,
+  target: PropTypes.element,
+  affix: PropTypes.bool,
 }
 
 export default Anchor

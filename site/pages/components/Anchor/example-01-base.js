@@ -9,8 +9,8 @@ import { Anchor } from 'shineout'
 
 export default function() {
   return (
-    <Anchor>
-      <Anchor.Link className="so-anchor-link-active" title="Base" href="#heading-01-base" />
+    <Anchor affix>
+      <Anchor.Link title="Base" href="#heading-01-base" />
       <Anchor.Link title="Affix" href="#heading-02-affix" />
       <Anchor.Link title="onClick" href="#heading-03-onclick" />
       <Anchor.Link title="onChange" href="#heading-04-onchange" />

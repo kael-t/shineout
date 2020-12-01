@@ -8,9 +8,10 @@ import React from 'react'
 import { Anchor } from 'shineout'
 
 export default function() {
-  return (
-    <Anchor>
-      <Anchor.Link title="test link" href="#heading-01-base" />
-    </Anchor>
-  )
+  // return (
+  //   <Anchor>
+  //     <Anchor.Link title="test link" href="#heading-01-base" />
+  //   </Anchor>
+  // )
+  return <div style={{ height: 400, width: '100%' }} />
 }

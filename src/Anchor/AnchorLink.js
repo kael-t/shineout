@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import { anchorClass } from '../styles'
 import AnchorContext from './context'
@@ -13,14 +14,14 @@ class AnchorLink extends Component {
   }
 
   componentDidMount() {
-    this.context.registerLink(this.props.href, this.getNodeTop())
+    this.context.registerLink(this.props.href)
   }
 
   componentDidUpdate(prevProps) {
     const { href } = this.props
     if (prevProps.href !== href) {
       this.context.unregisterLink(prevProps.href)
-      this.context.registerLink(href, this.getNodeTop())
+      this.context.registerLink(href)
     }
   }
 
@@ -29,13 +30,7 @@ class AnchorLink extends Component {
   }
 
   onClick(e) {
-    console.log('href: ', e)
-  }
-
-  getNodeTop() {
-    if (!this.node) return 0
-    const { top } = this.node.getBoundingClientRect()
-    return top
+    // console.log('href: ', e)
   }
 
   bindNode(node) {
@@ -47,7 +42,11 @@ class AnchorLink extends Component {
 
     return (
       <div
-        className={classnames(anchorClass('link'), this.context.activeLink === href && 'link-active', className)}
+        className={classnames(
+          anchorClass('link'),
+          this.context.activeLink === href && anchorClass('link-active'),
+          className
+        )}
         style={style}
       >
         <a
@@ -67,5 +66,14 @@ class AnchorLink extends Component {
 }
 
 AnchorLink.displayName = 'ShineoutAnchorLink'
+
+AnchorLink.propTypes = {
+  href: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  className: PropTypes.string,
+  style: PropTypes.object,
+  target: PropTypes.string,
+  children: PropTypes.node,
+}
 
 export default AnchorLink
